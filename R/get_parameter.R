@@ -1,60 +1,38 @@
+library(tidyverse)
 library(pdftools)
 
-get_parameter <- function(start_pattern) {
-  raw_text <- pdf_text("file/relValoresDiarios.pdf")
-  data_vec <- c() 
-  capturing <- FALSE
+
+split_by_parameter <- function(pdf_file_path) {
+  raw_text <- pdf_text(pdf_file_path)
+  raw_text <- paste(raw_text, collapse = "\n")
+  lines <- unlist(str_split(raw_text, "\n"))
+  parameter_indices <- which(str_detect(lines, "Parâmetro"))
+  dataframes <- list()
   
-  for (page_number in seq_along(raw_text)) {
-    page_split <- strsplit(raw_text[page_number], "\n")[[1]]
-    for (line in page_split) {
-      if (grepl(start_pattern, line)) {
-        capturing <- TRUE
-      }
-      
-      if (capturing) {
-        data_vec <- c(data_vec, line) 
-        if (grepl("31/12/2023", line)) {
-          capturing <- FALSE
-          break 
-        }
-      }
-    }
-    if (!capturing) {
-      break
-    }
+  for (i in seq_along(parameter_indices)) {
+    start_index <- parameter_indices[i]
+    end_index <- ifelse(i < length(parameter_indices), parameter_indices[i + 1] - 1, length(lines))
+    parameter_table <- lines[start_index:end_index]
+    parameter_table_df <- as.data.frame(parameter_table[parameter_table != ""])
+    colnames(parameter_table_df) <- "Data"
+    
+    # Adiciona o dataframe à lista
+    dataframes[[i]] <- parameter_table_df
   }
   
-  data_vec <- trimws(data_vec)
-  data_cleaned <- data_vec[data_vec != ""]
-  
-  
-  header_index <- grep("Data", data_cleaned)
-  data_cleaned <- data_cleaned[!grepl("Tipo|Rede|Pág.|Geração", data_cleaned)]
-  data_split <- strsplit(data_cleaned, "\\s{2,}") 
-  
-  # Filtra apenas linhas que têm o número correto de colunas
-  valid_rows <- lapply(data_split, function(x) {
-    if (length(x) == 5) {
-      return(x)
-    } else {
-      return(NULL)
-    }
-  })
-
-  valid_rows <- Filter(Negate(is.null), valid_rows)
-  
-  df <- do.call(rbind, valid_rows)
-  df <- as.data.frame(df, stringsAsFactors = FALSE)
-  
-  colnames(df) <- c("data", "valor_diario", 
-                    "horario_de_ocorrencia", 
-                    "numero_de_amostras", 
-                    "qualidade_do_ar")
-  
-  df <- df |>
-    tidyr::separate(data, into = c("dia", "mes", "ano"), sep = "/", convert = TRUE) |>
-    mutate(numero_de_amostras = as.integer(numero_de_amostras),
-           valor_diario = as.integer(valor_diario))
-  return(df)
+  return(dataframes)
 }
+
+
+rename_dataframes <- function(parameter_dataframes) {
+  parameter_names <- sapply(parameter_dataframes, function(x) str_extract(x[1, 1], "Parâmetro: (.+)"))
+  cleaned_dataframes <- setNames(parameter_dataframes, parameter_names)
+  
+  return(cleaned_dataframes)
+}
+
+dataframes <- rename_dataframes(split_by_parameter("file/relValoresDiarios.pdf"))
+
+
+
+
