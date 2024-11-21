@@ -1,45 +1,44 @@
-source("R/get_parameter.R", echo = FALSE)
+source("R/process_air_quality_parameters.R")
 
-correlacao_parametros <- function(parametro_escolhido) {
-  indice_parametro <- grep(parametro_escolhido, names(dfs), ignore.case = TRUE)
-  
-  if (length(indice_parametro) == 0) {
-    cat("Parâmetro não encontrado.\n")
-    return()
-  }
-  
-  df_parametro <- dfs[[indice_parametro]]
-  correlacoes <- c()
-  dias_parametro <- paste(df_parametro$dia, df_parametro$mes, sep = "-")
-  
- 
-  for (i in seq_along(dfs)) {
-    if (i == indice_parametro) {
-      next
-    }
-  
-    if ("valor_diario" %in% names(dfs[[i]])) {
-      df_comparacao <- dfs[[i]]
-      dias_comuns <- intersect(dias_parametro, paste(df_comparacao$dia, df_comparacao$mes, sep = "-"))
-      
-      if (length(dias_comuns) > 0) {
-        dados_parametro <- df_parametro[with(df_parametro, dias_parametro %in% dias_comuns), "valor_diario"]
-        dados_comparacao <- df_comparacao[with(df_comparacao, paste(dia, mes, sep = "-") %in% dias_comuns), "valor_diario"]
-       
-        cor_value <- tryCatch({
-          cor(dados_parametro, dados_comparacao, use = "complete.obs")
-        }, error = function(e) {
-          NA
-        })
+correlation_test <- function(dfs) {
+  results_list <- lapply(seq_along(dfs), function(index) {
+    df <- dfs[[index]]
+
+    df[, data := as.Date(paste(ano, mes, dia, sep = "-"))]
+
+    results <- data.frame(Parametro = character(),
+                          Correlacao = numeric(),
+                          P_Valor = numeric(),
+                          stringsAsFactors = FALSE)
+    
+    # Calcular a correlação do valor_diario com outros dataframes
+    for (j in seq_along(dfs)) {
+      if (j != index) {
+        other_df <- dfs[[j]]
+        other_df[, data := as.Date(paste(ano, mes, dia, sep = "-"))]
+        combined_data <- merge(df[, .(data, valor_diario)], 
+                               other_df[, .(data, valor_diario)], 
+                               by = "data", 
+                               suffixes = c("_base", "_other"))
         
-        correlacoes <- c(correlacoes, cor_value)
-      } else {
-        correlacoes <- c(correlacoes, NA)
+        if (nrow(combined_data) > 1) {
+          cor_test <- cor.test(combined_data$valor_diario_base, combined_data$valor_diario_other, method = "pearson")
+          results <- rbind(results, data.frame(
+            Parametro = names(dfs)[j],
+            Correlacao = cor_test$estimate,
+            P_Valor = cor_test$p.value,
+            stringsAsFactors = FALSE
+          ))
+        }
       }
     }
-  }
-  names(correlacoes) <- names(dfs)[-indice_parametro] 
-  cat(sprintf("Para o parâmetro '%s', as correlações são:\n", names(dfs)[indice_parametro]))
-  for (i in seq_along(correlacoes)) {
-    cat(sprintf("%s: %f\n", names(correlacoes)[i], correlacoes[i]))}
+
+    results$Parametro_Base <- names(dfs)[index]
+    return(results)
+  })
+  names(results_list) <- names(dfs)
+  return(results_list)
 }
+
+
+cor_test_results <- correlation_test(dfs)
