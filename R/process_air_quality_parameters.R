@@ -1,4 +1,4 @@
-source("R/extract_pdf_text.R", echo = FALSE)
+source("R/extract_pdf_text.R")
 
 library(data.table)
 library(stringr)
@@ -16,11 +16,11 @@ process_parameters <- function(lines) {
   
   dataframes <- list()
   
-  suppressMessages(clean_numeric_column <- function(column) {
+  clean_numeric_column <- function(column) {
     column <- gsub("\\s", "", column)
     column <- gsub(",", ".", column)
-    as.numeric(column)
-  })
+    suppressWarnings(as.numeric(column))
+  }
   
   
   for (i in seq_along(parameter_indices)) {
@@ -65,4 +65,4 @@ process_parameters <- function(lines) {
 }
 
 
-dfs <- suppressMessages(process_parameters(lines))
+dfs <- process_parameters(lines)
