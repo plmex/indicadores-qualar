@@ -10,4 +10,4 @@ read_pdf <- function(pdf_file_path) {
   return(lines)
 }
 
-lines <- suppressMessages(read_pdf("file/relValoresDiarios.pdf"))
+lines <- read_pdf("file/relValoresDiarios.pdf")
