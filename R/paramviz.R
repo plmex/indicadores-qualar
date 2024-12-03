@@ -8,3 +8,4 @@ plot_all_parameters <- function(dfs) {
 
 dfs <- process_parameters(lines)
 plot_all_parameters(dfs)
+
