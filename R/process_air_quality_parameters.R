@@ -39,8 +39,6 @@ process_parameters <- function(lines) {
     parameter_table_df[, valor_diario := clean_numeric_column(valor_diario)]
     parameter_table_df[, num_amostras := clean_numeric_column(num_amostras)]
     
-    parameter_table_df[, c("Data", "data") := NULL]
-    
     setcolorder(parameter_table_df, c("dia", "mes", "ano", "valor_diario", "horario_ocorrencia", "num_amostras", "qualidade_ar"))
     
     parameter_name <- str_extract(lines[start_index], "(?<=Parâmetro: ).*")
