@@ -1,4 +1,3 @@
-source("R/extract_pdf_text.R")
 
 
 process_parameters <- function(lines) {
@@ -43,7 +42,10 @@ process_parameters <- function(lines) {
     
     parameter_name <- str_extract(lines[start_index], "(?<=Parâmetro: ).*")
     parameter_names[i] <- str_trim(parameter_name)
-    dataframes[[parameter_names[i]]] <- parameter_table_df
+    dataframes[[parameter_names[i]]] <- parameter_table_df |>
+      select(-Data)
+    
+    
   }
   
   return(dataframes)
