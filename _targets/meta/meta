@@ -1,0 +1,9 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+sao_jose_raw|stem|a84eb0629db6bfb2|7e34a3df75997a38|c9a6ba09b9c8947a|1804592946||t20252.6043004376s|s349801b|349801|rds|local|vector|||5.438||
+unir_por_indicador|function|acedc709e0825cbc
+sao_jose_list|stem|4d3ed72a1365b830|838a6779d477d182|af2e8c749554f45c|-1621360844||t20252.6242694189s|s241523b|241523|rds|local|vector|||0.541||
+sao_jose|stem|04658f7b08445902|6d3e6803d41c0d9f|680cfaf358a35665|-927716830||t20252.6497470703s|s258666b|258666|rds|local|vector|||0.066||
+process_parameters|function|45f54686763eb270
+read_pdf|function|90017ea4505bdcd3
+.Random.seed|object|adff87ab27aad114
+bind_ind|function|acedc709e0825cbc
