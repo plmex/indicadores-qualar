@@ -9,7 +9,7 @@ bind_ind <- function(lista_anos) {
     function(ind) {
       dfs <- map(lista_anos, ~ .x[[ind]])  
       dfs <- compact(dfs)  
-      bind_rows(dfs, .id = "ano_index")            
+      reduce(dfs, dplyr::bind_rows)            
     }
   )
   
